@@ -5,6 +5,21 @@ from models import GameMode
 from pydantic import BaseModel, EmailStr, field_validator
 
 
+# Auth Schemas
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class TokenData(BaseModel):
+    username: Optional[str] = None
+
+
+class UserLogin(BaseModel):
+    username: str
+    password: str
+
+
 # User Schemas
 class UserBase(BaseModel):
     username: str
@@ -12,7 +27,7 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
-    pass
+    password: str
 
 
 class UserUpdate(BaseModel):

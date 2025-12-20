@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import "./App.css";
+import { useAuth } from "./contexts/AuthContext";
+import { AuthForms } from "./components/AuthForms";
 
 interface Position {
   x: number;
@@ -16,6 +18,8 @@ const INITIAL_DIRECTION: Direction = "RIGHT";
 const GAME_SPEED = 150;
 
 function App() {
+  const { user, logout, isAuthenticated, isLoading } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [snake, setSnake] = useState<Position[]>(INITIAL_SNAKE);
   const [food, setFood] = useState<Position>({ x: 15, y: 15 });
   const [direction, setDirection] = useState<Direction>(INITIAL_DIRECTION);
@@ -194,9 +198,39 @@ function App() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="app">
+        <h1>Snake Game</h1>
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="app">
-      <h1>Snake Game</h1>
+      <div className="header">
+        <h1>Snake Game</h1>
+        <div className="auth-section">
+          {isAuthenticated && user ? (
+            <div className="user-info">
+              <span className="username">👤 {user.username}</span>
+              <button onClick={logout} className="logout-button">
+                Logout
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowAuthModal(true)}
+              className="login-button"
+            >
+              Login / Sign Up
+            </button>
+          )}
+        </div>
+      </div>
+
+      {showAuthModal && <AuthForms onClose={() => setShowAuthModal(false)} />}
 
       {!isPlaying && !gameOver && (
         <div className="mode-selection">

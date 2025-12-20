@@ -7,6 +7,7 @@ from typing import List, Optional
 
 import models
 import schemas
+from auth import get_password_hash, verify_password
 from sqlalchemy import desc, func
 from sqlalchemy.orm import Session
 
@@ -33,12 +34,27 @@ def get_users(db: Session, skip: int = 0, limit: int = 100) -> List[models.User]
 
 
 def create_user(db: Session, user: schemas.UserCreate) -> models.User:
-    """Create a new user"""
-    db_user = models.User(username=user.username, email=user.email)
+    """Create a new user with hashed password"""
+    hashed_password = get_password_hash(user.password)
+    db_user = models.User(
+        username=user.username, email=user.email, hashed_password=hashed_password
+    )
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
     return db_user
+
+
+def authenticate_user(
+    db: Session, username: str, password: str
+) -> Optional[models.User]:
+    """Authenticate a user by username and password"""
+    user = get_user_by_username(db, username)
+    if not user:
+        return None
+    if not verify_password(password, user.hashed_password):
+        return None
+    return user
 
 
 def update_user(
