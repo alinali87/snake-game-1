@@ -7,6 +7,7 @@ interface Position {
 }
 
 type Direction = "UP" | "DOWN" | "LEFT" | "RIGHT";
+type GameMode = "walls" | "pass-through";
 
 const GRID_SIZE = 20;
 const CELL_SIZE = 20;
@@ -21,6 +22,7 @@ function App() {
   const [gameOver, setGameOver] = useState(false);
   const [score, setScore] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [gameMode, setGameMode] = useState<GameMode>("walls");
   const [highScores, setHighScores] = useState<
     Array<{ player_name: string; score: number }>
   >([]);
@@ -115,11 +117,29 @@ function App() {
             break;
         }
 
+        // Handle wall collision based on game mode
+        if (gameMode === "pass-through") {
+          // Wrap around the grid
+          if (newHead.x < 0) newHead.x = GRID_SIZE - 1;
+          if (newHead.x >= GRID_SIZE) newHead.x = 0;
+          if (newHead.y < 0) newHead.y = GRID_SIZE - 1;
+          if (newHead.y >= GRID_SIZE) newHead.y = 0;
+        } else {
+          // Walls mode - check for wall collision
+          if (
+            newHead.x < 0 ||
+            newHead.x >= GRID_SIZE ||
+            newHead.y < 0 ||
+            newHead.y >= GRID_SIZE
+          ) {
+            setGameOver(true);
+            setIsPlaying(false);
+            return prevSnake;
+          }
+        }
+
+        // Check for self-collision
         if (
-          newHead.x < 0 ||
-          newHead.x >= GRID_SIZE ||
-          newHead.y < 0 ||
-          newHead.y >= GRID_SIZE ||
           prevSnake.some(
             (segment) => segment.x === newHead.x && segment.y === newHead.y,
           )
@@ -131,9 +151,12 @@ function App() {
 
         const newSnake = [newHead, ...prevSnake];
 
+        // Check for food collision
         if (newHead.x === food.x && newHead.y === food.y) {
           setFood(generateFood());
-          setScore((s) => s + 10);
+          // Award more points in walls mode (harder)
+          const points = gameMode === "walls" ? 15 : 10;
+          setScore((s) => s + points);
           return newSnake;
         }
 
@@ -144,7 +167,7 @@ function App() {
 
     const interval = setInterval(moveSnake, GAME_SPEED);
     return () => clearInterval(interval);
-  }, [direction, food, gameOver, isPlaying, generateFood]);
+  }, [direction, food, gameOver, isPlaying, gameMode, generateFood]);
 
   const handleSaveScore = () => {
     const playerName = prompt("Enter your name:");
@@ -156,8 +179,37 @@ function App() {
   return (
     <div className="app">
       <h1>Snake Game</h1>
+
+      {!isPlaying && !gameOver && (
+        <div className="mode-selection">
+          <h3>Select Game Mode</h3>
+          <div className="mode-buttons">
+            <button
+              className={gameMode === "walls" ? "active" : ""}
+              onClick={() => setGameMode("walls")}
+            >
+              Walls Mode (15 pts/food)
+            </button>
+            <button
+              className={gameMode === "pass-through" ? "active" : ""}
+              onClick={() => setGameMode("pass-through")}
+            >
+              Pass-Through Mode (10 pts/food)
+            </button>
+          </div>
+          <p className="mode-description">
+            {gameMode === "walls"
+              ? "Hit a wall and game over! More challenging, more points."
+              : "Pass through walls and appear on the other side!"}
+          </p>
+        </div>
+      )}
+
       <div className="game-info">
         <p>Score: {score}</p>
+        <p className="current-mode">
+          Mode: {gameMode === "walls" ? "Walls" : "Pass-Through"}
+        </p>
         {gameOver && <p className="game-over">Game Over!</p>}
       </div>
       <div
@@ -191,7 +243,9 @@ function App() {
       </div>
       <div className="controls">
         {!isPlaying && !gameOver && (
-          <button onClick={resetGame}>Start Game</button>
+          <button onClick={resetGame} className="start-button">
+            Start Game
+          </button>
         )}
         {gameOver && (
           <>

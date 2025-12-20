@@ -14,10 +14,65 @@ h1 {
     color: #4caf50;
 }
 
+.mode-selection {
+    background-color: #2a2a2a;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    text-align: center;
+    min-width: 400px;
+}
+
+.mode-selection h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #4caf50;
+}
+
+.mode-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    justify-content: center;
+}
+
+.mode-buttons button {
+    flex: 1;
+    background-color: #3a3a3a;
+    border: 2px solid #4caf50;
+}
+
+.mode-buttons button.active {
+    background-color: #4caf50;
+    border-color: #45a049;
+}
+
+.mode-buttons button:hover {
+    background-color: #4a4a4a;
+}
+
+.mode-buttons button.active:hover {
+    background-color: #45a049;
+}
+
+.mode-description {
+    color: #aaa;
+    font-size: 14px;
+    margin: 0;
+    font-style: italic;
+}
+
 .game-info {
     margin-bottom: 10px;
     font-size: 20px;
     font-weight: bold;
+    display: flex;
+    gap: 30px;
+    justify-content: center;
+}
+
+.current-mode {
+    color: #4caf50;
 }
 
 .game-over {
@@ -61,7 +116,7 @@ button {
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: all 0.3s;
 }
 
 button:hover {
@@ -70,6 +125,17 @@ button:hover {
 
 button:active {
     transform: scale(0.98);
+}
+
+.start-button {
+    font-size: 18px;
+    padding: 15px 40px;
+    font-weight: bold;
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+}
+
+.start-button:hover {
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6);
 }
 
 .high-scores {
