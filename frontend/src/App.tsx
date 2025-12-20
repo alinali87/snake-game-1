@@ -234,26 +234,39 @@ function App() {
 
       {!isPlaying && !gameOver && (
         <div className="mode-selection">
-          <h3>Select Game Mode</h3>
+          <h3>🎮 Choose Your Game Mode</h3>
+          <p className="mode-instruction">
+            Click a mode below to select it, then click Start Game
+          </p>
           <div className="mode-buttons">
             <button
               className={gameMode === "walls" ? "active" : ""}
               onClick={() => setGameMode("walls")}
             >
-              Walls Mode (15 pts/food)
+              <div className="mode-title">🧱 Walls Mode</div>
+              <div className="mode-points">15 points per food</div>
+              <div className="mode-desc">Hit a wall = Game Over!</div>
             </button>
             <button
               className={gameMode === "pass-through" ? "active" : ""}
               onClick={() => setGameMode("pass-through")}
             >
-              Pass-Through Mode (10 pts/food)
+              <div className="mode-title">🌀 Pass-Through Mode</div>
+              <div className="mode-points">10 points per food</div>
+              <div className="mode-desc">Wrap around the edges</div>
             </button>
           </div>
-          <p className="mode-description">
-            {gameMode === "walls"
-              ? "Hit a wall and game over! More challenging, more points."
-              : "Pass through walls and appear on the other side!"}
-          </p>
+          <div className="mode-details">
+            <strong>
+              Selected:{" "}
+              {gameMode === "walls" ? "🧱 Walls Mode" : "🌀 Pass-Through Mode"}
+            </strong>
+            <p>
+              {gameMode === "walls"
+                ? "More challenging! Hitting the wall ends the game. Higher risk, higher reward."
+                : "Easier mode! Go off the edge to appear on the opposite side. Perfect for beginners."}
+            </p>
+          </div>
         </div>
       )}
 
