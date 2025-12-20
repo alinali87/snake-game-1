@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import "./App.css";
 import { useAuth } from "./contexts/AuthContext";
 import { AuthForms } from "./components/AuthForms";
+import { Leaderboard } from "./components/Leaderboard";
 
 interface Position {
   x: number;
@@ -32,14 +33,6 @@ function App() {
   const [foodEaten, setFoodEaten] = useState(0);
   const [movesCount, setMovesCount] = useState(0);
   const [gameStartTime, setGameStartTime] = useState<Date | null>(null);
-  const [highScores, setHighScores] = useState<
-    Array<{
-      username?: string;
-      player_name?: string;
-      score: number;
-      game_mode?: string;
-    }>
-  >([]);
 
   const generateFood = useCallback((): Position => {
     return {
@@ -100,8 +93,6 @@ function App() {
         if (response.ok) {
           const result = await response.json();
           console.log("Game ended:", result.message);
-          // Refresh leaderboard
-          fetchHighScores();
         }
       } catch (error) {
         console.error("Failed to end game session:", error);
@@ -124,41 +115,6 @@ function App() {
     // Start new game session
     await startGameSession();
   };
-
-  const saveScore = async (playerName: string) => {
-    try {
-      await fetch("/api/scores", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ player_name: playerName, score }),
-      });
-      fetchHighScores();
-    } catch (error) {
-      console.error("Failed to save score:", error);
-    }
-  };
-
-  const fetchHighScores = async () => {
-    try {
-      // Try new leaderboard endpoint first
-      const response = await fetch("/api/leaderboard?limit=10");
-      if (response.ok) {
-        const data = await response.json();
-        setHighScores(data);
-      } else {
-        // Fallback to old scores endpoint
-        const fallbackResponse = await fetch("/api/scores");
-        const data = await fallbackResponse.json();
-        setHighScores(data);
-      }
-    } catch (error) {
-      console.error("Failed to fetch high scores:", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchHighScores();
-  }, []);
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -290,13 +246,6 @@ function App() {
     const interval = setInterval(moveSnake, GAME_SPEED);
     return () => clearInterval(interval);
   }, [direction, food, gameOver, isPlaying, isPaused, gameMode, generateFood]);
-
-  const handleSaveScore = () => {
-    const playerName = prompt("Enter your name:");
-    if (playerName) {
-      saveScore(playerName);
-    }
-  };
 
   if (isLoading) {
     return (
@@ -433,12 +382,7 @@ function App() {
             {isPaused ? "Resume" : "Pause"}
           </button>
         )}
-        {gameOver && (
-          <>
-            <button onClick={resetGame}>Play Again</button>
-            <button onClick={handleSaveScore}>Save Score</button>
-          </>
-        )}
+        {gameOver && <button onClick={resetGame}>Play Again</button>}
       </div>
 
       {!isPlaying && !gameOver && (
@@ -461,21 +405,7 @@ function App() {
         </div>
       )}
 
-      <div className="high-scores">
-        <h2>High Scores</h2>
-        <ol>
-          {highScores.map((score, index) => (
-            <li key={index}>
-              {score.username || score.player_name}: {score.score}
-              {score.game_mode && (
-                <span className="score-mode">
-                  {score.game_mode === "walls" ? " 🧱" : " 🌀"}
-                </span>
-              )}
-            </li>
-          ))}
-        </ol>
-      </div>
+      <Leaderboard />
     </div>
   );
 }
