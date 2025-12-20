@@ -63,12 +63,34 @@ h1 {
 }
 
 .game-info {
-    margin-bottom: 10px;
-    font-size: 20px;
+    margin-bottom: 15px;
+    font-size: 18px;
     font-weight: bold;
     display: flex;
-    gap: 30px;
+    gap: 40px;
     justify-content: center;
+    background-color: #2a2a2a;
+    padding: 15px 30px;
+    border-radius: 10px;
+}
+
+.stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.stat-value {
+    font-size: 24px;
+    color: #fff;
 }
 
 .current-mode {
@@ -77,12 +99,48 @@ h1 {
 
 .game-over {
     color: #f44336;
-    margin-top: 10px;
+    font-size: 24px;
+    font-weight: bold;
+    margin: 10px 0;
+    animation: pulse 1s infinite;
+}
+
+.game-paused {
+    color: #ffc107;
+    font-size: 20px;
+    font-weight: bold;
+    margin: 10px 0;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
 }
 
 .game-board {
     position: relative;
     background-color: #000;
+    background-image:
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 19px,
+            rgba(76, 175, 80, 0.1) 19px,
+            rgba(76, 175, 80, 0.1) 20px
+        ),
+        repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 19px,
+            rgba(76, 175, 80, 0.1) 19px,
+            rgba(76, 175, 80, 0.1) 20px
+        );
     border: 2px solid #4caf50;
     margin: 20px 0;
     box-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
@@ -136,6 +194,56 @@ button:active {
 
 .start-button:hover {
     box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6);
+}
+
+.pause-button {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.pause-button:hover {
+    background-color: #ffb300;
+}
+
+.controls-help {
+    background-color: #2a2a2a;
+    padding: 20px;
+    border-radius: 10px;
+    margin: 20px 0;
+    text-align: center;
+}
+
+.controls-help h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #4caf50;
+    font-size: 18px;
+}
+
+.control-items {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.control-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #ccc;
+}
+
+.control-key {
+    background-color: #3a3a3a;
+    border: 2px solid #555;
+    border-radius: 5px;
+    padding: 5px 12px;
+    font-weight: bold;
+    color: #4caf50;
+    font-family: monospace;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
 .high-scores {

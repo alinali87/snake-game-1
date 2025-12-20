@@ -22,6 +22,7 @@ function App() {
   const [gameOver, setGameOver] = useState(false);
   const [score, setScore] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [gameMode, setGameMode] = useState<GameMode>("walls");
   const [highScores, setHighScores] = useState<
     Array<{ player_name: string; score: number }>
@@ -74,17 +75,34 @@ function App() {
     const handleKeyPress = (e: KeyboardEvent) => {
       if (!isPlaying) return;
 
+      // Handle pause
+      if (e.key === " " || e.key === "Escape") {
+        e.preventDefault();
+        setIsPaused((prev) => !prev);
+        return;
+      }
+
+      if (isPaused) return;
+
       switch (e.key) {
         case "ArrowUp":
+        case "w":
+        case "W":
           if (direction !== "DOWN") setDirection("UP");
           break;
         case "ArrowDown":
+        case "s":
+        case "S":
           if (direction !== "UP") setDirection("DOWN");
           break;
         case "ArrowLeft":
+        case "a":
+        case "A":
           if (direction !== "RIGHT") setDirection("LEFT");
           break;
         case "ArrowRight":
+        case "d":
+        case "D":
           if (direction !== "LEFT") setDirection("RIGHT");
           break;
       }
@@ -92,10 +110,10 @@ function App() {
 
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
-  }, [direction, isPlaying]);
+  }, [direction, isPlaying, isPaused]);
 
   useEffect(() => {
-    if (!isPlaying || gameOver) return;
+    if (!isPlaying || gameOver || isPaused) return;
 
     const moveSnake = () => {
       setSnake((prevSnake) => {
@@ -167,7 +185,7 @@ function App() {
 
     const interval = setInterval(moveSnake, GAME_SPEED);
     return () => clearInterval(interval);
-  }, [direction, food, gameOver, isPlaying, gameMode, generateFood]);
+  }, [direction, food, gameOver, isPlaying, isPaused, gameMode, generateFood]);
 
   const handleSaveScore = () => {
     const playerName = prompt("Enter your name:");
@@ -206,12 +224,25 @@ function App() {
       )}
 
       <div className="game-info">
-        <p>Score: {score}</p>
-        <p className="current-mode">
-          Mode: {gameMode === "walls" ? "Walls" : "Pass-Through"}
-        </p>
-        {gameOver && <p className="game-over">Game Over!</p>}
+        <div className="stat">
+          <span className="stat-label">Score:</span>
+          <span className="stat-value">{score}</span>
+        </div>
+        <div className="stat">
+          <span className="stat-label">Length:</span>
+          <span className="stat-value">{snake.length}</span>
+        </div>
+        <div className="stat">
+          <span className="stat-label">Mode:</span>
+          <span className="stat-value current-mode">
+            {gameMode === "walls" ? "Walls" : "Pass-Through"}
+          </span>
+        </div>
       </div>
+      {gameOver && <p className="game-over">Game Over!</p>}
+      {isPaused && !gameOver && (
+        <p className="game-paused">PAUSED - Press SPACE to resume</p>
+      )}
       <div
         className="game-board"
         style={{
@@ -247,6 +278,14 @@ function App() {
             Start Game
           </button>
         )}
+        {isPlaying && !gameOver && (
+          <button
+            onClick={() => setIsPaused(!isPaused)}
+            className="pause-button"
+          >
+            {isPaused ? "Resume" : "Pause"}
+          </button>
+        )}
         {gameOver && (
           <>
             <button onClick={resetGame}>Play Again</button>
@@ -254,6 +293,27 @@ function App() {
           </>
         )}
       </div>
+
+      {!isPlaying && !gameOver && (
+        <div className="controls-help">
+          <h3>Controls</h3>
+          <div className="control-items">
+            <div className="control-item">
+              <span className="control-key">↑ ↓ ← →</span>
+              <span>or</span>
+              <span className="control-key">W A S D</span>
+              <span>Move</span>
+            </div>
+            <div className="control-item">
+              <span className="control-key">SPACE</span>
+              <span>or</span>
+              <span className="control-key">ESC</span>
+              <span>Pause</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="high-scores">
         <h2>High Scores</h2>
         <ol>
