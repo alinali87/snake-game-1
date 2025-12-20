@@ -5,7 +5,7 @@ import schemas
 from database import engine, get_db
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from routers import auth
+from routers import auth, games, leaderboard
 from sqlalchemy.orm import Session
 
 models.Base.metadata.create_all(bind=engine)
@@ -14,6 +14,8 @@ app = FastAPI(title="Snake Game API")
 
 # Include routers
 app.include_router(auth.router)
+app.include_router(games.router)
+app.include_router(leaderboard.router)
 
 # Configure CORS
 app.add_middleware(

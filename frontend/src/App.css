@@ -387,3 +387,8 @@ button:active {
     margin: 10px 0;
     font-size: 18px;
 }
+
+.score-mode {
+    font-size: 14px;
+    opacity: 0.8;
+}

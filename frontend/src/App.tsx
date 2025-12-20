@@ -18,7 +18,7 @@ const INITIAL_DIRECTION: Direction = "RIGHT";
 const GAME_SPEED = 150;
 
 function App() {
-  const { user, logout, isAuthenticated, isLoading } = useAuth();
+  const { user, token, logout, isAuthenticated, isLoading } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [snake, setSnake] = useState<Position[]>(INITIAL_SNAKE);
   const [food, setFood] = useState<Position>({ x: 15, y: 15 });
@@ -28,8 +28,17 @@ function App() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [gameMode, setGameMode] = useState<GameMode>("walls");
+  const [currentGameId, setCurrentGameId] = useState<number | null>(null);
+  const [foodEaten, setFoodEaten] = useState(0);
+  const [movesCount, setMovesCount] = useState(0);
+  const [gameStartTime, setGameStartTime] = useState<Date | null>(null);
   const [highScores, setHighScores] = useState<
-    Array<{ player_name: string; score: number }>
+    Array<{
+      username?: string;
+      player_name?: string;
+      score: number;
+      game_mode?: string;
+    }>
   >([]);
 
   const generateFood = useCallback((): Position => {
@@ -39,13 +48,81 @@ function App() {
     };
   }, []);
 
-  const resetGame = () => {
+  const startGameSession = async () => {
+    if (isAuthenticated && user && token) {
+      try {
+        const response = await fetch("/api/games/start", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            user_id: user.id,
+            game_mode: gameMode,
+          }),
+        });
+
+        if (response.ok) {
+          const game = await response.json();
+          setCurrentGameId(game.id);
+          setGameStartTime(new Date());
+        }
+      } catch (error) {
+        console.error("Failed to start game session:", error);
+      }
+    }
+  };
+
+  const endGameSession = async () => {
+    if (currentGameId && token && gameStartTime) {
+      const duration = Math.floor(
+        (new Date().getTime() - gameStartTime.getTime()) / 1000,
+      );
+
+      try {
+        const response = await fetch(`/api/games/${currentGameId}/end`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            score,
+            snake_length: snake.length,
+            duration_seconds: duration,
+            moves_count: movesCount,
+            food_eaten: foodEaten,
+            is_completed: true,
+          }),
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log("Game ended:", result.message);
+          // Refresh leaderboard
+          fetchHighScores();
+        }
+      } catch (error) {
+        console.error("Failed to end game session:", error);
+      }
+    }
+  };
+
+  const resetGame = async () => {
     setSnake(INITIAL_SNAKE);
     setFood(generateFood());
     setDirection(INITIAL_DIRECTION);
     setGameOver(false);
     setScore(0);
+    setFoodEaten(0);
+    setMovesCount(0);
     setIsPlaying(true);
+    setCurrentGameId(null);
+    setGameStartTime(null);
+
+    // Start new game session
+    await startGameSession();
   };
 
   const saveScore = async (playerName: string) => {
@@ -63,9 +140,17 @@ function App() {
 
   const fetchHighScores = async () => {
     try {
-      const response = await fetch("/api/scores");
-      const data = await response.json();
-      setHighScores(data);
+      // Try new leaderboard endpoint first
+      const response = await fetch("/api/leaderboard?limit=10");
+      if (response.ok) {
+        const data = await response.json();
+        setHighScores(data);
+      } else {
+        // Fallback to old scores endpoint
+        const fallbackResponse = await fetch("/api/scores");
+        const data = await fallbackResponse.json();
+        setHighScores(data);
+      }
     } catch (error) {
       console.error("Failed to fetch high scores:", error);
     }
@@ -92,22 +177,34 @@ function App() {
         case "ArrowUp":
         case "w":
         case "W":
-          if (direction !== "DOWN") setDirection("UP");
+          if (direction !== "DOWN") {
+            setDirection("UP");
+            setMovesCount((m) => m + 1);
+          }
           break;
         case "ArrowDown":
         case "s":
         case "S":
-          if (direction !== "UP") setDirection("DOWN");
+          if (direction !== "UP") {
+            setDirection("DOWN");
+            setMovesCount((m) => m + 1);
+          }
           break;
         case "ArrowLeft":
         case "a":
         case "A":
-          if (direction !== "RIGHT") setDirection("LEFT");
+          if (direction !== "RIGHT") {
+            setDirection("LEFT");
+            setMovesCount((m) => m + 1);
+          }
           break;
         case "ArrowRight":
         case "d":
         case "D":
-          if (direction !== "LEFT") setDirection("RIGHT");
+          if (direction !== "LEFT") {
+            setDirection("RIGHT");
+            setMovesCount((m) => m + 1);
+          }
           break;
       }
     };
@@ -168,6 +265,8 @@ function App() {
         ) {
           setGameOver(true);
           setIsPlaying(false);
+          // End game session
+          endGameSession();
           return prevSnake;
         }
 
@@ -179,6 +278,7 @@ function App() {
           // Award more points in walls mode (harder)
           const points = gameMode === "walls" ? 15 : 10;
           setScore((s) => s + points);
+          setFoodEaten((f) => f + 1);
           return newSnake;
         }
 
@@ -366,7 +466,12 @@ function App() {
         <ol>
           {highScores.map((score, index) => (
             <li key={index}>
-              {score.player_name}: {score.score}
+              {score.username || score.player_name}: {score.score}
+              {score.game_mode && (
+                <span className="score-mode">
+                  {score.game_mode === "walls" ? " 🧱" : " 🌀"}
+                </span>
+              )}
             </li>
           ))}
         </ol>
