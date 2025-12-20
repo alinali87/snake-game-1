@@ -1,0 +1,20 @@
+{
+  "name": "snake-game-fullstack",
+  "version": "1.0.0",
+  "description": "Full-stack Snake Game with React + FastAPI",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && uv run uvicorn main:app --reload --port 3000",
+    "install:all": "npm install && cd frontend && npm install && cd ../backend && uv pip install -r requirements.txt"
+  },
+  "keywords": [
+    "snake",
+    "game",
+    "react",
+    "fastapi"
+  ],
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
