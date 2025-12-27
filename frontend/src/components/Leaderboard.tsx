@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import './Leaderboard.css';
+import { useState, useEffect, useCallback } from "react";
+import { useAuth } from "../contexts/AuthContext";
+import "./Leaderboard.css";
 
 interface LeaderboardEntry {
   id: number;
@@ -20,13 +20,13 @@ interface UserStats {
   average_score: number;
 }
 
-type GameMode = 'all' | 'walls' | 'pass-through';
+type GameMode = "all" | "walls" | "pass-through";
 
 export function Leaderboard() {
   const { user } = useAuth();
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [userStats, setUserStats] = useState<UserStats | null>(null);
-  const [selectedMode, setSelectedMode] = useState<GameMode>('all');
+  const [selectedMode, setSelectedMode] = useState<GameMode>("all");
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -39,12 +39,27 @@ export function Leaderboard() {
     }
   }, [user]);
 
+  // Listen for custom refresh event
+  useEffect(() => {
+    const handleRefresh = () => {
+      fetchLeaderboard();
+      if (user) {
+        fetchUserStats();
+      }
+    };
+
+    window.addEventListener("refreshLeaderboard", handleRefresh);
+    return () =>
+      window.removeEventListener("refreshLeaderboard", handleRefresh);
+  }, [selectedMode, user]);
+
   const fetchLeaderboard = async () => {
     setIsLoading(true);
     try {
-      const url = selectedMode === 'all'
-        ? '/api/leaderboard?limit=20'
-        : `/api/leaderboard?game_mode=${selectedMode}&limit=20`;
+      const url =
+        selectedMode === "all"
+          ? "/api/leaderboard?limit=20"
+          : `/api/leaderboard?game_mode=${selectedMode}&limit=20`;
 
       const response = await fetch(url);
       if (response.ok) {
@@ -52,7 +67,7 @@ export function Leaderboard() {
         setEntries(data);
       }
     } catch (error) {
-      console.error('Failed to fetch leaderboard:', error);
+      console.error("Failed to fetch leaderboard:", error);
     } finally {
       setIsLoading(false);
     }
@@ -70,25 +85,29 @@ export function Leaderboard() {
         }
       }
     } catch (error) {
-      console.error('Failed to fetch user stats:', error);
+      console.error("Failed to fetch user stats:", error);
     }
   };
 
   const getMedalEmoji = (rank: number) => {
     switch (rank) {
-      case 1: return '🥇';
-      case 2: return '🥈';
-      case 3: return '🥉';
-      default: return '';
+      case 1:
+        return "🥇";
+      case 2:
+        return "🥈";
+      case 3:
+        return "🥉";
+      default:
+        return "";
     }
   };
 
   const getModeIcon = (mode: string) => {
-    return mode === 'walls' ? '🧱' : '🌀';
+    return mode === "walls" ? "🧱" : "🌀";
   };
 
   const getModeName = (mode: string) => {
-    return mode === 'walls' ? 'Walls' : 'Pass-Through';
+    return mode === "walls" ? "Walls" : "Pass-Through";
   };
 
   return (
@@ -121,20 +140,20 @@ export function Leaderboard() {
 
       <div className="mode-filter">
         <button
-          className={selectedMode === 'all' ? 'active' : ''}
-          onClick={() => setSelectedMode('all')}
+          className={selectedMode === "all" ? "active" : ""}
+          onClick={() => setSelectedMode("all")}
         >
           All Modes
         </button>
         <button
-          className={selectedMode === 'walls' ? 'active' : ''}
-          onClick={() => setSelectedMode('walls')}
+          className={selectedMode === "walls" ? "active" : ""}
+          onClick={() => setSelectedMode("walls")}
         >
           🧱 Walls
         </button>
         <button
-          className={selectedMode === 'pass-through' ? 'active' : ''}
-          onClick={() => setSelectedMode('pass-through')}
+          className={selectedMode === "pass-through" ? "active" : ""}
+          onClick={() => setSelectedMode("pass-through")}
         >
           🌀 Pass-Through
         </button>
@@ -161,26 +180,35 @@ export function Leaderboard() {
             </thead>
             <tbody>
               {entries.map((entry, index) => {
-                const displayRank = selectedMode === 'all' ? index + 1 : entry.rank || index + 1;
+                const displayRank =
+                  selectedMode === "all" ? index + 1 : entry.rank || index + 1;
                 const isCurrentUser = user?.username === entry.username;
 
                 return (
-                  <tr key={entry.id} className={isCurrentUser ? 'current-user' : ''}>
+                  <tr
+                    key={entry.id}
+                    className={isCurrentUser ? "current-user" : ""}
+                  >
                     <td className="rank-cell">
                       <span className="rank-number">{displayRank}</span>
                       {displayRank <= 3 && (
-                        <span className="medal">{getMedalEmoji(displayRank)}</span>
+                        <span className="medal">
+                          {getMedalEmoji(displayRank)}
+                        </span>
                       )}
                     </td>
                     <td className="username-cell">
                       {entry.username}
                       {isCurrentUser && <span className="you-badge">You</span>}
                     </td>
-                    <td className="score-cell">{entry.score.toLocaleString()}</td>
+                    <td className="score-cell">
+                      {entry.score.toLocaleString()}
+                    </td>
                     <td className="length-cell">{entry.snake_length}</td>
                     <td className="mode-cell">
                       <span className="mode-badge">
-                        {getModeIcon(entry.game_mode)} {getModeName(entry.game_mode)}
+                        {getModeIcon(entry.game_mode)}{" "}
+                        {getModeName(entry.game_mode)}
                       </span>
                     </td>
                     <td className="date-cell">

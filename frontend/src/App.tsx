@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import "./App.css";
 import { useAuth } from "./contexts/AuthContext";
 import { AuthForms } from "./components/AuthForms";
@@ -33,6 +33,7 @@ function App() {
   const [foodEaten, setFoodEaten] = useState(0);
   const [movesCount, setMovesCount] = useState(0);
   const [gameStartTime, setGameStartTime] = useState<Date | null>(null);
+  const gameEndedRef = useRef(false);
 
   const generateFood = useCallback((): Position => {
     return {
@@ -67,38 +68,44 @@ function App() {
     }
   };
 
-  const endGameSession = async () => {
-    if (currentGameId && token && gameStartTime) {
-      const duration = Math.floor(
-        (new Date().getTime() - gameStartTime.getTime()) / 1000,
-      );
+  const endGameSession = useCallback(
+    async (finalScore: number, finalLength: number) => {
+      if (currentGameId && token && gameStartTime) {
+        const duration = Math.floor(
+          (new Date().getTime() - gameStartTime.getTime()) / 1000,
+        );
 
-      try {
-        const response = await fetch(`/api/games/${currentGameId}/end`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            score,
-            snake_length: snake.length,
-            duration_seconds: duration,
-            moves_count: movesCount,
-            food_eaten: foodEaten,
-            is_completed: true,
-          }),
-        });
+        try {
+          const response = await fetch(`/api/games/${currentGameId}/end`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              score: finalScore,
+              snake_length: finalLength,
+              duration_seconds: duration,
+              moves_count: movesCount,
+              food_eaten: foodEaten,
+              is_completed: true,
+            }),
+          });
 
-        if (response.ok) {
-          const result = await response.json();
-          console.log("Game ended:", result.message);
+          if (response.ok) {
+            const result = await response.json();
+            console.log("Game ended:", result.message);
+
+            // Trigger leaderboard refresh
+            window.dispatchEvent(new Event("refreshLeaderboard"));
+          }
+        } catch (error) {
+          console.error("Failed to end game session:", error);
         }
-      } catch (error) {
-        console.error("Failed to end game session:", error);
       }
-    }
-  };
+    },
+    [currentGameId, token, gameStartTime, movesCount, foodEaten],
+  );
 
   const resetGame = async () => {
     setSnake(INITIAL_SNAKE);
@@ -111,10 +118,19 @@ function App() {
     setIsPlaying(true);
     setCurrentGameId(null);
     setGameStartTime(null);
+    gameEndedRef.current = false;
 
     // Start new game session
     await startGameSession();
   };
+
+  // End game session when game is over
+  useEffect(() => {
+    if (gameOver && currentGameId && !gameEndedRef.current) {
+      gameEndedRef.current = true;
+      endGameSession(score, snake.length);
+    }
+  }, [gameOver, currentGameId, score, snake.length, endGameSession]);
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -221,8 +237,6 @@ function App() {
         ) {
           setGameOver(true);
           setIsPlaying(false);
-          // End game session
-          endGameSession();
           return prevSnake;
         }
 
