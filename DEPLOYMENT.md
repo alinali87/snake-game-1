@@ -55,9 +55,24 @@ docker-compose down -v     # Stop and remove volumes (deletes database!)
 
 ### Deploy to Render.com (Recommended)
 
-Render provides free PostgreSQL and web service hosting.
+Render provides free PostgreSQL and web service hosting with **one-click deployment** using the included `render.yaml` Blueprint.
 
-#### 1. Create PostgreSQL Database
+#### Option A: One-Click Blueprint Deployment (Easiest)
+
+1. Push your code to GitHub
+2. Go to [Render Dashboard](https://dashboard.render.com/)
+3. Click **"New +"** → **"Blueprint"**
+4. Connect your GitHub repository
+5. Render will auto-detect `render.yaml` and show:
+   - PostgreSQL database: `snake-game-db`
+   - Web service: `snake-game`
+6. Click **"Apply"** to deploy everything automatically
+
+Your app will be live at `https://snake-game-<random>.onrender.com` in ~5 minutes.
+
+#### Option B: Manual Deployment
+
+##### 1. Create PostgreSQL Database
 
 1. Go to [Render Dashboard](https://dashboard.render.com/)
 2. Click "New +" → "PostgreSQL"
@@ -70,7 +85,7 @@ Render provides free PostgreSQL and web service hosting.
 4. Click "Create Database"
 5. Copy the **Internal Database URL** (it starts with `postgresql://`)
 
-#### 2. Deploy Application
+##### 2. Deploy Application
 
 1. Click "New +" → "Web Service"
 2. Connect your Git repository
