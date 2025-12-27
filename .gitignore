@@ -49,3 +49,6 @@ frontend/.vite/
 # Backend specific
 backend/*.db
 backend/__pycache__/
+
+# MCP configuration (contains API tokens)
+.mcp.json
