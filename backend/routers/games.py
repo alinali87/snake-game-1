@@ -101,9 +101,17 @@ async def end_game(
             ),
         )
 
+    # Convert to Pydantic models for serialization
+    game_response = schemas.Game.model_validate(completed_game)
+    leaderboard_response = (
+        schemas.LeaderboardEntry.model_validate(leaderboard_entry)
+        if leaderboard_entry
+        else None
+    )
+
     return {
-        "game": completed_game,
-        "leaderboard_entry": leaderboard_entry,
+        "game": game_response,
+        "leaderboard_entry": leaderboard_response,
         "message": "Game completed and submitted to leaderboard"
         if leaderboard_entry
         else "Game completed",
