@@ -1,0 +1,67 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Docker
+docker-compose.yml
+Dockerfile
+.dockerignore
+
+# Documentation
+*.md
+!DEPLOYMENT.md
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info
+dist
+build
+*.egg
+.pytest_cache
+.venv
+venv
+env
+
+# Node
+node_modules
+npm-debug.log
+yarn-error.log
+.npm
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Backend
+backend/snake_game.db
+backend/.env
+backend/test.db
+backend/.pytest_cache
+
+# Frontend
+frontend/dist
+frontend/.vite
+frontend/coverage
+
+# Tests
+tests
+*.test.ts
+*.test.js
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs
